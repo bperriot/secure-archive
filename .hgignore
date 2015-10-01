@@ -1,0 +1,10 @@
+syntax: glob
+*.swp
+*.pyc
+*.pyo
+*.sublime-workspace
+
+*.sac
+
+__pycache__
+
