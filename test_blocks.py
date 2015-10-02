@@ -42,12 +42,12 @@ class TestBlockWriterRawString(object):
         compression_header = data[30:39]
         data = data[39:]
 
-        assert data == b'\x02\x00\x00\x00{}'
-        assert compression_header == b'\x00\x08\x03\x00\x00\x06\x00\x00\x00'
-        assert encryption_header == b'\x00\x08\x02\x00\x00\x0F\x00\x00\x00'
-        assert errorcorrecting_header == \
-            b'\x00\x08\x01\x00\x00\x18\x00\x00\x00'
         assert block_header == b'1234567\x00\x00\x00\x00\x00'
+        assert data == b'\x02\x00\x00\x00{}'
+        assert compression_header == b'\x08\x00\x03\x00\x00\x06\x00\x00\x00'
+        assert encryption_header == b'\x08\x00\x02\x00\x00\x0F\x00\x00\x00'
+        assert errorcorrecting_header == \
+            b'\x08\x00\x01\x00\x00\x18\x00\x00\x00'
 
 
     def test_id(self):
@@ -63,10 +63,10 @@ class TestBlockWriterRawString(object):
         data = data[39:]
 
         assert data == b'\x02\x00\x00\x00{}'
-        assert compression_header == b'\x00\x08\x03\x00\x00\x06\x00\x00\x00'
-        assert encryption_header == b'\x00\x08\x02\x00\x00\x0F\x00\x00\x00'
+        assert compression_header == b'\x08\x00\x03\x00\x00\x06\x00\x00\x00'
+        assert encryption_header == b'\x08\x00\x02\x00\x00\x0F\x00\x00\x00'
         assert errorcorrecting_header == \
-            b'\x00\x08\x01\x00\x00\x18\x00\x00\x00'
+            b'\x08\x00\x01\x00\x00\x18\x00\x00\x00'
         assert block_header == b'1234567\x00\x03\x02\x00\x00'
 
 
@@ -81,7 +81,7 @@ class TestBlockWriterRawString(object):
         errorcorrecting_header = data[12:21]
         encryption_header = data[21:30]
         compression_header = data[30:39]
-        datalen = struct.unpack('I', data[39:43])[0]
+        datalen = struct.unpack('<I', data[39:43])[0]
         metadata = data[43:90]
         bin = data[90:]
 
@@ -92,10 +92,10 @@ class TestBlockWriterRawString(object):
         assert json.loads(metadata) == {"0": {"size": 0,
                                               "offset": 0,
                                               "metadata": {}}}
-        assert compression_header == b'\x00\x08\x03\x00\x00\x2D\x00\x00\x00'
-        assert encryption_header == b'\x00\x08\x02\x00\x00\x36\x00\x00\x00'
+        assert compression_header == b'\x08\x00\x03\x00\x00\x2D\x00\x00\x00'
+        assert encryption_header == b'\x08\x00\x02\x00\x00\x36\x00\x00\x00'
         assert errorcorrecting_header == \
-            b'\x00\x08\x01\x00\x00\x3F\x00\x00\x00'
+            b'\x08\x00\x01\x00\x00\x3F\x00\x00\x00'
         assert block_header == b'1234567\x00\x00\x00\x00\x00'
 
 
@@ -110,7 +110,7 @@ class TestBlockWriterRawString(object):
         errorcorrecting_header = data[12:21]
         encryption_header = data[21:30]
         compression_header = data[30:39]
-        datalen = struct.unpack('I', data[39:43])[0]
+        datalen = struct.unpack('<I', data[39:43])[0]
         metadata = data[43:84]
         bin = data[84:]
 
@@ -118,10 +118,10 @@ class TestBlockWriterRawString(object):
         assert bin == 'foo'
         assert json.loads(metadata) == {"0": {"size": 3,
                                         "offset": 0, "metadata": {}}}
-        assert compression_header == b'\x00\x08\x03\x00\x00\x30\x00\x00\x00'
-        assert encryption_header == b'\x00\x08\x02\x00\x00\x39\x00\x00\x00'
+        assert compression_header == b'\x08\x00\x03\x00\x00\x30\x00\x00\x00'
+        assert encryption_header == b'\x08\x00\x02\x00\x00\x39\x00\x00\x00'
         assert errorcorrecting_header == \
-            b'\x00\x08\x01\x00\x00\x42\x00\x00\x00'
+            b'\x08\x00\x01\x00\x00\x42\x00\x00\x00'
         assert block_header == b'1234567\x00\x00\x00\x00\x00'
 
 
@@ -137,7 +137,7 @@ class TestBlockWriterRawString(object):
         errorcorrecting_header = data[12:21]
         encryption_header = data[21:30]
         compression_header = data[30:39]
-        metadatalen = struct.unpack('I', data[39:43])[0]
+        metadatalen = struct.unpack('<I', data[39:43])[0]
         metadata = data[43:125]
         bin = data[125:]
 
@@ -151,10 +151,10 @@ class TestBlockWriterRawString(object):
         assert bin == 'foosecondentry'
         assert metadatalen == 82
         assert json.loads(metadata) == metadata_ref
-        assert compression_header == b'\x00\x08\x03\x00\x00\x64\x00\x00\x00'
-        assert encryption_header == b'\x00\x08\x02\x00\x00\x6D\x00\x00\x00'
+        assert compression_header == b'\x08\x00\x03\x00\x00\x64\x00\x00\x00'
+        assert encryption_header == b'\x08\x00\x02\x00\x00\x6D\x00\x00\x00'
         assert errorcorrecting_header == \
-            b'\x00\x08\x01\x00\x00\x76\x00\x00\x00'
+            b'\x08\x00\x01\x00\x00\x76\x00\x00\x00'
         assert block_header == b'1234567\x00\x00\x00\x00\x00'
 
 # different id
@@ -169,9 +169,9 @@ class TestBlockReaderRawString(object):
 
         data = (
             b'1234567\x00\x00\x00\x00\x00'
-            b'\x00\x08\x01\x00\x00\x18\x00\x00\x00'
-            b'\x00\x08\x02\x00\x00\x0F\x00\x00\x00'
-            b'\x00\x08\x03\x00\x00\x06\x00\x00\x00'
+            b'\x08\x00\x01\x00\x00\x18\x00\x00\x00'
+            b'\x08\x00\x02\x00\x00\x0F\x00\x00\x00'
+            b'\x08\x00\x03\x00\x00\x06\x00\x00\x00'
             b'\x02\x00\x00\x00{}'
             )
 
@@ -193,10 +193,10 @@ class TestBlockReaderRawString(object):
     #     data = data[39:]
 
     #     assert data == b'\x02\x00\x00\x00[]'
-    #     assert compression_header == b'\x00\x08\x03\x00\x00\x06\x00\x00\x00'
-    #     assert encryption_header == b'\x00\x08\x02\x00\x00\x0F\x00\x00\x00'
+    #     assert compression_header == b'\x08\x00\x03\x00\x00\x06\x00\x00\x00'
+    #     assert encryption_header == b'\x08\x00\x02\x00\x00\x0F\x00\x00\x00'
     #     assert errorcorrecting_header == \
-    #         b'\x00\x08\x01\x00\x00\x18\x00\x00\x00'
+    #         b'\x08\x00\x01\x00\x00\x18\x00\x00\x00'
     #     assert block_header == b'1234567\x00\x03\x02\x00\x00'
 
 
@@ -211,10 +211,10 @@ class TestBlockReaderRawString(object):
 
         data = (
             b'1234567\x00\x00\x00\x00\x00'
-            b'\x00\x08\x01\x00\x00\x45\x00\x00\x00'
-            b'\x00\x08\x02\x00\x00\x3C\x00\x00\x00'
-            b'\x00\x08\x03\x00\x00\x33\x00\x00\x00' +
-            struct.pack('I', len(metadata)) + metadata
+            b'\x08\x00\x01\x00\x00\x45\x00\x00\x00'
+            b'\x08\x00\x02\x00\x00\x3C\x00\x00\x00'
+            b'\x08\x00\x03\x00\x00\x33\x00\x00\x00' +
+            struct.pack('<I', len(metadata)) + metadata
             )
 
         infile = StringIO(data)
@@ -236,10 +236,10 @@ class TestBlockReaderRawString(object):
 
         data = (
             b'1234567\x00\x00\x00\x00\x00'
-            b'\x00\x08\x01\x00\x00\x42\x00\x00\x00'
-            b'\x00\x08\x02\x00\x00\x39\x00\x00\x00'
-            b'\x00\x08\x03\x00\x00\x30\x00\x00\x00' +
-            struct.pack('I', len(metadata)) + metadata + 'foo'
+            b'\x08\x00\x01\x00\x00\x42\x00\x00\x00'
+            b'\x08\x00\x02\x00\x00\x39\x00\x00\x00'
+            b'\x08\x00\x03\x00\x00\x30\x00\x00\x00' +
+            struct.pack('<I', len(metadata)) + metadata + 'foo'
             )
 
         infile = StringIO(data)
@@ -263,10 +263,10 @@ class TestBlockReaderRawString(object):
 
         data = (
             b'1234567\x00\x00\x00\x00\x00'
-            b'\x00\x08\x01\x00\x00\x72\x00\x00\x00'
-            b'\x00\x08\x02\x00\x00\x69\x00\x00\x00'
-            b'\x00\x08\x03\x00\x00\x60\x00\x00\x00' +
-            struct.pack('I', len(metadata)) + metadata + 'foosecondentry')
+            b'\x08\x00\x01\x00\x00\x72\x00\x00\x00'
+            b'\x08\x00\x02\x00\x00\x69\x00\x00\x00'
+            b'\x08\x00\x03\x00\x00\x60\x00\x00\x00' +
+            struct.pack('<I', len(metadata)) + metadata + 'foosecondentry')
 
         infile = StringIO(data)
         bl = BlockReader(infile)

@@ -3,8 +3,11 @@
 
 import struct
 import json
-from copy import copy
 from collections import OrderedDict
+
+from compression import CompressionLayerWriter
+from encryption import EncryptionLayerWriter
+from errorcorrecting import ErrorCorrectingLayerWriter
 
 block_magic_value = '1234567\x00'
 
@@ -16,44 +19,56 @@ class BlockWriter(object):
         self.entries = []
 
     def flush(self, outfile):
-        offset = 0
+        blockdata = ''
 
         block_metadata = OrderedDict()
         for key, metadata, data in self.entries:
             block_metadata[key] = OrderedDict([
                 ('size', len(data)),
-                ('offset', offset),
+                ('offset', len(blockdata)),
                 ('metadata', metadata)
                 ])
 
-            offset += len(data)
+            blockdata += data
 
         metadatastring = json.dumps(block_metadata, separators=(',', ':'))
 
-        datalen = len(metadatastring) + offset
+        datalen = len(metadatastring) + len(blockdata)
+
+        compression_layer = CompressionLayerWriter(
+            data=struct.pack(
+                '<I', len(metadatastring)) + metadatastring + blockdata)
+
+        encryption_layer = EncryptionLayerWriter(
+            data=compression_layer.get_data())
+
+        errorcorrection_layer = ErrorCorrectingLayerWriter(
+            data=encryption_layer.get_data())
 
         # block header
         outfile.write(b'1234567\x00')
         outfile.write(struct.pack('I', self.id))
 
+        outfile.write(errorcorrection_layer.get_data())
+
         # error-correcting header
-        outfile.write(b'\x00\x08\x01\x00\x00')
-        outfile.write(struct.pack('I', datalen + 22))
+        # outfile.write(b'\x08\x00\x01\x00\x00')
+        # outfile.write(struct.pack('I', datalen + 22))
 
         # encryption header
-        outfile.write(b'\x00\x08\x02\x00\x00')
-        outfile.write(struct.pack('I', datalen + 13))
+        # outfile.write(b'\x08\x00\x02\x00\x00')
+        # outfile.write(struct.pack('I', datalen + 13))
 
         # compression header
-        outfile.write(b'\x00\x08\x03\x00\x00')
-        outfile.write(struct.pack('I', datalen + 4))
+        # outfile.write(b'\x08\x00\x03\x00\x00')
+        # outfile.write(struct.pack('I', datalen + 4))
 
         # metadata
-        outfile.write(struct.pack('I', len(metadatastring)))
-        outfile.write(metadatastring)
+        # outfile.write(struct.pack('I', len(metadatastring)))
+        # outfile.write(metadatastring)
 
-        for key, metadata, data in self.entries:
-            outfile.write(data)
+        # for key, metadata, data in self.entries:
+            # outfile.write(data)
 
     def add_entry(self, key, metadata, data):
         self.entries.append((key, metadata, data))
@@ -66,7 +81,7 @@ class BlockReader(object):
         self.infile = infile
 
         self.infile.seek(39)
-        self.metadata_len = struct.unpack('I', self.infile.read(4))[0]
+        self.metadata_len = struct.unpack('<I', self.infile.read(4))[0]
         self.metadata = json.loads(self.infile.read(self.metadata_len),
                                    object_pairs_hook=OrderedDict)
         self.bin_offset = self.infile.tell()

@@ -37,34 +37,46 @@ When padding is needed, pseudo-random data are used.
 
 #### Bloc header
 
-- Magic value (8 bytes)
+- Magic value (7 bytes)
+- Format version (1 byte)
 - Bloc id (4 bytes, used for indexing)
-[- Decoded info hash (if not problematic for confidentiality)]
 
 #### Layer structure (generic)
 
 - Header lenght (2 bytes)
 - Layer id (1 byte)
-- Method used (1 byte)
+- Encoding used (1 byte)
     eg aes for encryption, bzip or lzma for compression...
+- Encoding version (1 byte)
 - Layer parameters (variable)
     aes key, aes hmac, compression parameter, ...
-- Data lenght (2 bytes)
+- Data lenght (4 bytes)
 - Data of next layer or raw
 
 #### Inner data
 - first, metadata size (4 bytes)
 - metadata of all entry, as json dict, with raw data offset
-    {
-        key:"filename",
+    {"key": {
         size:1024,
         offset:20000,
         metadata:"metadata"
-    }
+    }}
 - binary data of all entry
 
 
 - block table
+
+#### Error correction layer
+
+Layer id: 1
+
+#### Encryption layer
+
+Layer id: 3
+
+#### Compression layer
+
+Layer id: 3
 
 
 
