@@ -20,7 +20,7 @@ class GenericLayerWriter(object):
 
     def get_header(self):
         return struct.pack('<HBBBI',
-                           8,
+                           9,
                            self.layer_id,
                            self.encoding,
                            self.encoding_version,
@@ -28,4 +28,26 @@ class GenericLayerWriter(object):
 
     def get_data(self):
         return self.get_header() + self.payload
+
+
+class GenericLayerReader(object):
+
+    def __init__(self, data=''):
+        self.data = data
+
+        self.header_length = struct.unpack('H', self.data[:2])[0]
+        self.header = self.data[:self.header_length]
+
+        self.layer_id, self.encoding, self.encoding_version = \
+            struct.unpack('<BBB', self.header[2:5])
+        self.data_len = struct.unpack('<I', self.header[-4:])[0]
+        self.encoding_parameters = self.header[5:-4]
+
+        self._decode_data()
+
+    def _decode_data(self):
+        self.decoded_data = self.data[self.header_length:]
+
+    def get_data(self):
+        return self.decoded_data
 

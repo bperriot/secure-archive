@@ -9,6 +9,8 @@ from compression import CompressionLayerWriter
 from encryption import EncryptionLayerWriter
 from errorcorrecting import ErrorCorrectingLayerWriter
 
+
+
 block_magic_value = '1234567\x00'
 
 

@@ -3,7 +3,7 @@
 
 import zlib
 
-from layer import GenericLayerWriter
+from layer import GenericLayerWriter, GenericLayerReader
 
 
 encoding_dict = {
@@ -27,6 +27,21 @@ class CompressionLayerWriter(GenericLayerWriter):
             self.payload = self.data
         elif self.encoding == encoding_dict['gzip']:
             self.payload = zlib.compress(self.data, 9)
+
+
+class CompressionLayerReader(GenericLayerReader):
+
+    def __init__(self, data=''):
+
+        super(CompressionLayerReader, self).__init__(data)
+
+
+    def _decode_data(self):
+        payload = self.data[self.header_length:]
+        if self.encoding == encoding_dict['none']:
+            self.decoded_data = payload
+        elif self.encoding == encoding_dict['gzip']:
+            self.decoded_data = zlib.decompress(payload)
 
 
 
