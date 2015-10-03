@@ -5,6 +5,7 @@ syntax: glob
 *.sublime-workspace
 
 *.sac
+TODO.md
 
 __pycache__
 
