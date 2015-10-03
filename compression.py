@@ -3,7 +3,8 @@
 
 import zlib
 
-from layer import GenericLayerWriter, GenericLayerReader
+from layer import GenericLayerWriter
+from layer import GenericLayerReader
 
 
 encoding_dict = {

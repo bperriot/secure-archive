@@ -5,9 +5,10 @@ import struct
 import json
 from collections import OrderedDict
 
-from compression import CompressionLayerWriter
-from encryption import EncryptionLayerWriter
+from compression import CompressionLayerWriter, CompressionLayerReader
+from encryption import EncryptionLayerWriter, EncryptionLayerReader
 from errorcorrecting import ErrorCorrectingLayerWriter
+from errorcorrecting import ErrorCorrectingLayerReader
 
 
 
@@ -35,8 +36,6 @@ class BlockWriter(object):
 
         metadatastring = json.dumps(block_metadata, separators=(',', ':'))
 
-        datalen = len(metadatastring) + len(blockdata)
-
         compression_layer = CompressionLayerWriter(
             data=struct.pack(
                 '<I', len(metadatastring)) + metadatastring + blockdata)
@@ -53,24 +52,6 @@ class BlockWriter(object):
 
         outfile.write(errorcorrection_layer.get_data())
 
-        # error-correcting header
-        # outfile.write(b'\x08\x00\x01\x00\x00')
-        # outfile.write(struct.pack('I', datalen + 22))
-
-        # encryption header
-        # outfile.write(b'\x08\x00\x02\x00\x00')
-        # outfile.write(struct.pack('I', datalen + 13))
-
-        # compression header
-        # outfile.write(b'\x08\x00\x03\x00\x00')
-        # outfile.write(struct.pack('I', datalen + 4))
-
-        # metadata
-        # outfile.write(struct.pack('I', len(metadatastring)))
-        # outfile.write(metadatastring)
-
-        # for key, metadata, data in self.entries:
-            # outfile.write(data)
 
     def add_entry(self, key, metadata, data):
         self.entries.append((key, metadata, data))
@@ -82,11 +63,19 @@ class BlockReader(object):
     def __init__(self, infile):
         self.infile = infile
 
-        self.infile.seek(39)
-        self.metadata_len = struct.unpack('<I', self.infile.read(4))[0]
-        self.metadata = json.loads(self.infile.read(self.metadata_len),
+        self.block_header = infile.read(12)
+
+        ecr = ErrorCorrectingLayerReader(infile.read())
+        enr = EncryptionLayerReader(ecr.get_data())
+        cpr = CompressionLayerReader(enr.get_data())
+
+        self.raw_data = cpr.get_data()
+
+        self.metadata_len = struct.unpack('<I', self.raw_data[:4])[0]
+
+        self.metadata = json.loads(self.raw_data[4:4+self.metadata_len],
                                    object_pairs_hook=OrderedDict)
-        self.bin_offset = self.infile.tell()
+        self.bin_offset = 4 + self.metadata_len
 
     def get_keys(self):
         return self.metadata.keys()
@@ -98,11 +87,7 @@ class BlockReader(object):
         offset = self.metadata[key]['offset']
         size = self.metadata[key]['size']
 
-        self.infile.seek(self.bin_offset + offset)
-
-        return self.infile.read(size)
-
-
-
+        return self.raw_data[self.bin_offset + offset:
+                             self.bin_offset + offset + size]
 
 
