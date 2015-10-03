@@ -61,7 +61,7 @@ class TestCompressionLayerReader(object):
         clr = CompressionLayerReader(b'\x09\x00\x03\x00\x00\x00\x00\x00\x00')
         data = clr.get_data()
 
-        assert clr.get_data() == ''
+        assert data == ''
 
 
     def test_compression_none(self):

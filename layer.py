@@ -12,6 +12,7 @@ class GenericLayerWriter(object):
         self.encoding_version = 0
         self.encoding_param = encoding_param if encoding_param else {}
         self.data = data
+        self.encoding_param_header = b''
 
         self._encode_data()
 
@@ -19,12 +20,13 @@ class GenericLayerWriter(object):
         self.payload = self.data
 
     def get_header(self):
-        return struct.pack('<HBBBI',
-                           9,
-                           self.layer_id,
-                           self.encoding,
-                           self.encoding_version,
-                           len(self.payload))
+        return (struct.pack('<HBBB',
+                            9 + len(self.encoding_param_header),
+                            self.layer_id,
+                            self.encoding,
+                            self.encoding_version) +
+                self.encoding_param_header +
+                struct.pack('<I', len(self.payload)))
 
     def get_data(self):
         return self.get_header() + self.payload

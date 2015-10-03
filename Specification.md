@@ -70,9 +70,27 @@ When padding is needed, pseudo-random data are used.
 
 Layer id: 1
 
+Encoding:
+    - 0 none
+    - 1 gzip
+
 #### Encryption layer
 
-Layer id: 3
+Layer id: 2
+
+Encoding:
+    - 0 none
+    - 1 fernet
+
+##### Fernet
+
+    - key format (pbkdf2, 0x01) - 1 bytes
+    - key derivation algorithm - 1 bytes (0x01 sha256)
+    - key number of turn - 4 bytes
+    - key derivation salt - 16 bytes
+    - fernet version 1 byte
+    - fernet timestamp 8 bytes
+    - fernet IV 16 bytes
 
 #### Compression layer
 
