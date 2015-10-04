@@ -71,8 +71,16 @@ When padding is needed, pseudo-random data are used.
 Layer id: 1
 
 Encoding:
-    - 0 none
-    - 1 gzip
+    - 0: none
+    - 1: reed-solomon
+
+#### Reed-solomon header
+    - number of error correcting bytes (10 by default), 1 bytes
+
+    Format: interleaved reed-solomon buffers
+
+
+
 
 #### Encryption layer
 
@@ -82,7 +90,7 @@ Encoding:
     - 0 none
     - 1 fernet
 
-##### Fernet
+##### Fernet header
 
     - key format (pbkdf2, 0x01) - 1 bytes
     - key derivation algorithm - 1 bytes (0x01 sha256)
@@ -95,6 +103,10 @@ Encoding:
 #### Compression layer
 
 Layer id: 3
+
+Encoding:
+    - 0 none
+    - 1 gzip
 
 
 
