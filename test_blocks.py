@@ -11,6 +11,13 @@ import pytest
 
 from blocks import BlockWriter, BlockReader
 
+from compression import CompressionLayerReader
+from compression import CompressionLayerWriter
+from encryption import EncryptionLayerReader
+from encryption import EncryptionLayerWriter
+from errorcorrecting import ErrorCorrectingLayerReader
+from errorcorrecting import ErrorCorrectingLayerWriter
+
 # - Magic value (7 bytes)
 # - Block format version (1 byte)
 # - Bloc id (4 bytes, used for indexing)
@@ -32,7 +39,9 @@ from blocks import BlockWriter, BlockReader
 class TestBlockWriterRawString(object):
     def test_empty_block(self):
         outfile = StringIO()
-        bl = BlockWriter(0)
+        bl = BlockWriter(0, compression={'encoding': 'none'},
+                         encryption={"encoding": "none"},
+                         errorcorrecting={"encoding": "none"})
         bl.flush(outfile)
 
         data = outfile.getvalue()
@@ -52,7 +61,9 @@ class TestBlockWriterRawString(object):
 
     def test_id(self):
         outfile = StringIO()
-        bl = BlockWriter(515)
+        bl = BlockWriter(515, compression={'encoding': 'none'},
+                         encryption={"encoding": "none"},
+                         errorcorrecting={"encoding": "none"})
         bl.flush(outfile)
 
         data = outfile.getvalue()
@@ -72,7 +83,9 @@ class TestBlockWriterRawString(object):
 
     def test_empty_entry(self):
         outfile = StringIO()
-        bl = BlockWriter(0)
+        bl = BlockWriter(0, compression={'encoding': 'none'},
+                         encryption={"encoding": "none"},
+                         errorcorrecting={"encoding": "none"})
         bl.add_entry('0', {}, '')
         bl.flush(outfile)
 
@@ -101,7 +114,9 @@ class TestBlockWriterRawString(object):
 
     def test_simple_entry(self):
         outfile = StringIO()
-        bl = BlockWriter(0)
+        bl = BlockWriter(0, compression={'encoding': 'none'},
+                         encryption={"encoding": "none"},
+                         errorcorrecting={"encoding": "none"})
         bl.add_entry('0', {}, 'foo')
         bl.flush(outfile)
 
@@ -127,7 +142,9 @@ class TestBlockWriterRawString(object):
 
     def test_multiple_entry(self):
         outfile = StringIO()
-        bl = BlockWriter(0)
+        bl = BlockWriter(0, compression={'encoding': 'none'},
+                         encryption={"encoding": "none"},
+                         errorcorrecting={"encoding": "none"})
         bl.add_entry('0', {}, 'foo')
         bl.add_entry('1', {}, 'secondentry')
         bl.flush(outfile)
@@ -263,9 +280,9 @@ class TestBlockReaderRawString(object):
 
         data = (
             b'1234567\x00\x00\x00\x00\x00'
-            b'\x09\x00\x01\x00\x00\x72\x00\x00\x00'
-            b'\x09\x00\x02\x00\x00\x69\x00\x00\x00'
-            b'\x09\x00\x03\x00\x00\x60\x00\x00\x00' +
+            b'\x09\x00\x01\x00\x00\x76\x00\x00\x00'
+            b'\x09\x00\x02\x00\x00\x6D\x00\x00\x00'
+            b'\x09\x00\x03\x00\x00\x64\x00\x00\x00' +
             struct.pack('<I', len(metadata)) + metadata + 'foosecondentry')
 
         infile = StringIO(data)
@@ -276,5 +293,44 @@ class TestBlockReaderRawString(object):
         assert bl.get_metadata('1') == {}
         assert bl.get_data('0') == 'foo'
         assert bl.get_data('1') == 'secondentry'
+
+
+class TestBlockWriterLayers(object):
+
+    def test_default_encoding(self):
+
+        block_file = StringIO()
+
+        bl = BlockWriter(0, encryption={"param": {"secret": "auietsrn"}})
+        bl.add_entry('0', {}, 'file1')
+        bl.add_entry('1', {}, 'file2')
+
+        bl.flush(block_file)
+
+        block_file.seek(12)
+
+        ec_data = block_file.read()
+        en_data = ErrorCorrectingLayerReader(ec_data).get_data()
+        enr = EncryptionLayerReader(en_data, secret="auietsrn")
+        cp_data = enr.get_data()
+        raw_data = CompressionLayerReader(cp_data).get_data()
+
+        metadata_length = struct.unpack('<I', raw_data[:4])[0]
+        metadata = raw_data[4:metadata_length+4]
+        data = raw_data[metadata_length+4:]
+
+        assert json.loads(metadata) == {
+            "0": {"size": 5, "offset": 0, "metadata": {}},
+            "1": {"size": 5, "offset": 5, "metadata": {}},
+            }
+
+        assert data == 'file1file2'
+
+        assert cp_data == CompressionLayerWriter(
+            encoding="gzip", data=raw_data).get_data()
+        assert enr.encoding == 1
+        assert len(enr.encoding_parameters) == 47
+        assert ec_data == ErrorCorrectingLayerWriter(
+            encoding="reedsolo", data=en_data).get_data()
 
 

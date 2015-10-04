@@ -17,9 +17,22 @@ block_magic_value = '1234567\x00'
 
 class BlockWriter(object):
 
-    def __init__(self, id):
+    def __init__(self, id, compression=None, encryption=None,
+                 errorcorrecting=None):
         self.id = id
         self.entries = []
+
+        self.compression = {"encoding": "gzip"}
+        if compression:
+            self.compression.update(compression)
+
+        self.encryption = {"encoding": "fernet", "param": {}}
+        if encryption:
+            self.encryption.update(encryption)
+
+        self.errorcorrecting = {"encoding": "reedsolo"}
+        if errorcorrecting:
+            self.errorcorrecting.update(errorcorrecting)
 
     def flush(self, outfile):
         blockdata = ''
@@ -37,13 +50,17 @@ class BlockWriter(object):
         metadatastring = json.dumps(block_metadata, separators=(',', ':'))
 
         compression_layer = CompressionLayerWriter(
+            encoding=self.compression["encoding"],
             data=struct.pack(
                 '<I', len(metadatastring)) + metadatastring + blockdata)
 
         encryption_layer = EncryptionLayerWriter(
+            encoding=self.encryption["encoding"],
+            encoding_param=self.encryption["param"],
             data=compression_layer.get_data())
 
         errorcorrection_layer = ErrorCorrectingLayerWriter(
+            encoding=self.errorcorrecting['encoding'],
             data=encryption_layer.get_data())
 
         # block header

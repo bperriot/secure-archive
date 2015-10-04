@@ -18,6 +18,7 @@ encoding_dict = {
     'fernet': 1,
     }
 
+
 class EncryptionLayerWriter(GenericLayerWriter):
     def __init__(self, encoding=0, encoding_param=None, data=''):
 
@@ -62,7 +63,8 @@ class EncryptionLayerReader(GenericLayerReader):
     def _decode_data(self):
 
         if self.encoding == encoding_dict['none']:
-            self.decoded_data = self.data[self.header_length:]
+            self.decoded_data = self.data[self.header_length:
+                                          self.header_length+self.data_len]
 
         elif self.encoding == encoding_dict['fernet']:
             key_format, key_derivation_algo, turns = \
@@ -78,7 +80,8 @@ class EncryptionLayerReader(GenericLayerReader):
             key = base64.urlsafe_b64encode(kdf.derive(self.secret))
 
             token = base64.urlsafe_b64encode(
-                fernet_header + self.data[self.header_length:])
+                fernet_header + self.data[self.header_length:
+                                          self.header_length+self.data_len])
 
             f = Fernet(key)
             self.decoded_data = f.decrypt(token)
