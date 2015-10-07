@@ -37,7 +37,7 @@ class TestEncryptionLayerWriter(object):
         assert data == 'foobarbaz'
 
 
-    @pytest.mark.skipif("True")
+    # @pytest.mark.skipif("True")
     def test_encryption_fernet(self):
         ecw = EncryptionLayerWriter(encoding='fernet',
                                     encoding_param={'secret': 'password',
@@ -96,7 +96,7 @@ class TestEncryptionLayerReader(object):
         assert data == 'foobarbaz'
 
 
-    @pytest.mark.skipif("True")
+    # @pytest.mark.skipif("True")
     def test_encryption_fernet(self):
 
         ecw = EncryptionLayerWriter(encoding='fernet',

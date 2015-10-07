@@ -334,3 +334,28 @@ class TestBlockWriterLayers(object):
             encoding="reedsolo", data=en_data).get_data()
 
 
+class TestBlockReaderLayers(object):
+
+    def test_default_encoding(self):
+
+        block_file = StringIO()
+
+        bl = BlockWriter(0, encryption={"param": {"secret": "auietsrn"}})
+        bl.add_entry('0', {}, 'file1')
+        bl.add_entry('1', {}, 'file2')
+
+        bl.flush(block_file)
+
+        block_file.seek(0)
+
+        br = BlockReader(block_file, secret='auietsrn')
+
+
+        assert br.get_keys() == ["0", "1"]
+        assert br.get_metadata("0") == {}
+        assert br.get_data("0") == 'file1'
+        assert br.get_metadata("1") == {}
+        assert br.get_data("1") == 'file2'
+
+
+

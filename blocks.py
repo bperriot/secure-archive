@@ -77,13 +77,13 @@ class BlockWriter(object):
 
 class BlockReader(object):
 
-    def __init__(self, infile):
+    def __init__(self, infile, secret=''):
         self.infile = infile
 
         self.block_header = infile.read(12)
 
         ecr = ErrorCorrectingLayerReader(infile.read())
-        enr = EncryptionLayerReader(ecr.get_data())
+        enr = EncryptionLayerReader(ecr.get_data(), secret=secret)
         cpr = CompressionLayerReader(enr.get_data())
 
         self.raw_data = cpr.get_data()
