@@ -15,6 +15,10 @@ from errorcorrecting import ErrorCorrectingLayerReader
 block_magic_value = '1234567\x00'
 
 
+class BadMagicValueError(Exception):
+    pass
+
+
 class BlockWriter(object):
 
     def __init__(self, id, compression=None, encryption=None,
@@ -84,6 +88,11 @@ class BlockReader(object):
         self.infile = infile
 
         self.block_header = infile.read(12)
+
+        if self.block_header[:8] != block_magic_value:
+            raise BadMagicValueError("Got {0} instead of {1}".format(
+                ''.join(('\\x%x' % ord(i) for i in self.block_header[:7])),
+                ''.join(('\\x%x' % ord(i) for i in block_magic_value))))
 
         self.id = struct.unpack('<I', self.block_header[8:])[0]
 

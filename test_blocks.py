@@ -9,6 +9,7 @@ from collections import OrderedDict
 import pytest
 
 
+import blocks
 from blocks import BlockWriter, BlockReader
 
 from compression import CompressionLayerReader
@@ -291,6 +292,22 @@ class TestBlockReaderRawString(object):
         assert bl.get_metadata('1') == {}
         assert bl.get_data('0') == 'foo'
         assert bl.get_data('1') == 'secondentry'
+
+    def test_wrongmagicvalue(self):
+
+        data = (
+            b'1233567\x00\x00\x00\x00\x00'
+            b'\x09\x00\x01\x00\x00\x18\x00\x00\x00'
+            b'\x09\x00\x02\x00\x00\x0F\x00\x00\x00'
+            b'\x09\x00\x03\x00\x00\x06\x00\x00\x00'
+            b'\x02\x00\x00\x00{}'
+            )
+
+        infile = StringIO(data)
+
+        with pytest.raises(blocks.BadMagicValueError):
+            BlockReader(infile)
+
 
 
 class TestBlockWriterLayers(object):
