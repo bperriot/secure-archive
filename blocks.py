@@ -73,6 +73,9 @@ class BlockWriter(object):
     def add_entry(self, key, metadata, data):
         self.entries.append((key, metadata, data))
 
+    def size_estimate(self):
+        return sum([len(data) for key, metadata, data in self.entries])
+
 
 
 class BlockReader(object):
