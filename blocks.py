@@ -82,6 +82,8 @@ class BlockReader(object):
 
         self.block_header = infile.read(12)
 
+        self.id = struct.unpack('<I', self.block_header[8:])[0]
+
         ecr = ErrorCorrectingLayerReader(infile.read())
         enr = EncryptionLayerReader(ecr.get_data(), secret=secret)
         cpr = CompressionLayerReader(enr.get_data())

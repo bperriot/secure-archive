@@ -193,28 +193,26 @@ class TestBlockReaderRawString(object):
             )
 
         infile = StringIO(data)
-        bl = BlockReader(infile)
+        br = BlockReader(infile)
 
-        assert bl.get_keys() == []
+        assert br.id == 0
+        assert br.get_keys() == []
 
-    # def test_id(self):
-    #     outfile = StringIO()
-    #     bl = BlockWriter(515)
-    #     bl.flush(outfile)
+    def test_id(self):
+        infile = StringIO()
 
-    #     data = outfile.getvalue()
-    #     block_header = data[0:12]
-    #     errorcorrecting_header = data[12:21]
-    #     encryption_header = data[21:30]
-    #     compression_header = data[30:39]
-    #     data = data[39:]
+        infile.write(b'1234567\x00\x03\x02\x00\x00')
+        infile.write(b'\x09\x00\x01\x00\x00\x18\x00\x00\x00')
+        infile.write(b'\x09\x00\x02\x00\x00\x0F\x00\x00\x00')
+        infile.write(b'\x09\x00\x03\x00\x00\x06\x00\x00\x00')
+        infile.write(b'\x02\x00\x00\x00{}')
 
-    #     assert data == b'\x02\x00\x00\x00[]'
-    #     assert compression_header == b'\x09\x00\x03\x00\x00\x06\x00\x00\x00'
-    #     assert encryption_header == b'\x09\x00\x02\x00\x00\x0F\x00\x00\x00'
-    #     assert errorcorrecting_header == \
-    #         b'\x09\x00\x01\x00\x00\x18\x00\x00\x00'
-    #     assert block_header == b'1234567\x00\x03\x02\x00\x00'
+        infile.seek(0)
+
+        br = BlockReader(infile)
+
+        assert br.id == 515
+        assert br.get_keys() == []
 
 
     def test_empty_entry(self):
