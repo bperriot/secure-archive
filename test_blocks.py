@@ -355,5 +355,68 @@ class TestBlockReaderLayers(object):
         assert br.get_metadata("1") == {}
         assert br.get_data("1") == 'file2'
 
+    def test_nocompression(self):
 
+        block_file = StringIO()
+
+        bl = BlockWriter(0, encryption={"param": {"secret": "auietsrn"}},
+                         compression={"encoding": "none"})
+        bl.add_entry('0', {}, 'file1')
+        bl.add_entry('1', {}, 'file2')
+
+        bl.flush(block_file)
+
+        block_file.seek(0)
+
+        br = BlockReader(block_file, secret='auietsrn')
+
+
+        assert br.get_keys() == ["0", "1"]
+        assert br.get_metadata("0") == {}
+        assert br.get_data("0") == 'file1'
+        assert br.get_metadata("1") == {}
+        assert br.get_data("1") == 'file2'
+
+    def test_noencryption(self):
+
+        block_file = StringIO()
+
+        bl = BlockWriter(0, encryption={"encoding": "none"})
+        bl.add_entry('0', {}, 'file1')
+        bl.add_entry('1', {}, 'file2')
+
+        bl.flush(block_file)
+
+        block_file.seek(0)
+
+        br = BlockReader(block_file, secret='auietsrn')
+
+
+        assert br.get_keys() == ["0", "1"]
+        assert br.get_metadata("0") == {}
+        assert br.get_data("0") == 'file1'
+        assert br.get_metadata("1") == {}
+        assert br.get_data("1") == 'file2'
+
+    def test_noerrorcorrecting(self):
+
+        block_file = StringIO()
+
+        bl = BlockWriter(0, encryption={"param": {"secret": "auietsrn"}},
+                         compression={"errorcorrecting": "none"})
+        bl.add_entry('0', {}, 'file1')
+        bl.add_entry('1', {}, 'file2')
+
+        bl.flush(block_file)
+
+        block_file.seek(0)
+
+        br = BlockReader(block_file, secret='auietsrn')
+
+
+        assert br.get_keys() == ["0", "1"]
+        assert br.get_metadata("0") == {}
+        assert br.get_data("0") == 'file1'
+        assert br.get_metadata("1") == {}
+        assert br.get_data("1") == 'file2'
 
