@@ -75,6 +75,8 @@ class BlockWriter(object):
 
 
     def add_entry(self, key, metadata, data):
+        if not metadata:
+            metadata = {}
         self.entries.append((key, metadata, data))
 
     def size_estimate(self):
@@ -112,7 +114,7 @@ class BlockReader(object):
         return self.metadata.keys()
 
     def get_metadata(self, key):
-        return {}
+        return self.metadata.get(key)['metadata']
 
     def get_data(self, key):
         offset = self.metadata[key]['offset']

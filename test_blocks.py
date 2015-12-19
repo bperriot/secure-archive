@@ -437,3 +437,34 @@ class TestBlockReaderLayers(object):
         assert br.get_metadata("1") == {}
         assert br.get_data("1") == 'file2'
 
+    def test_metadata(self):
+
+        block_file = StringIO()
+
+        bl = BlockWriter(0, encryption={"param": {"secret": "auietsrn"}})
+        bl.add_entry('0', {'perm': 'rwx'}, 'file1')
+        bl.add_entry('1',
+                     {'perm': 'rw',
+                      'last-modification': '2015-12-01T20:21:23'},
+                     'file2')
+        bl.add_entry('2', None, 'file3')
+
+        bl.flush(block_file)
+
+        block_file.seek(0)
+
+        br = BlockReader(block_file, secret='auietsrn')
+
+
+        assert br.get_keys() == ["0", "1", '2']
+
+        assert br.get_metadata("0") == {'perm': 'rwx'}
+        assert br.get_data("0") == 'file1'
+
+        assert br.get_metadata("1") == {
+            'perm': 'rw',
+            'last-modification': '2015-12-01T20:21:23'}
+        assert br.get_data("1") == 'file2'
+
+        assert br.get_metadata("2") == {}
+        assert br.get_data("2") == 'file3'
