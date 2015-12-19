@@ -16,7 +16,6 @@ from blocks import BlockReader
 
 class TestArchiveWriter(object):
 
-    @pytest.mark.skipif("True")
     def test_archive_empty(self):
 
         outfile = StringIO()
@@ -31,7 +30,6 @@ class TestArchiveWriter(object):
         assert bl.get_keys() == []
 
 
-    @pytest.mark.skipif("True")
     def test_short_archive(self):
 
         outfile = StringIO()
@@ -58,13 +56,10 @@ class TestArchiveWriter(object):
         outfile = StringIO()
 
         ar = ArchiveWriter()
-        from time import time
 
-        t0 = time()
         for i in xrange(1024):
             file_ = '0' * 50*1024
             ar.add('file%03d' % i, {}, file_)
-        print time()-t0
 
         ar.flush(outfile)
 
@@ -74,7 +69,6 @@ class TestArchiveWriter(object):
         block_lenghts = []
         block_ids = []
         while offset < len(data):
-            print "new block"
             offset += 8  # block header
             block_id = struct.unpack('<I', data[offset:offset+4])[0]
             offset += 4
@@ -82,9 +76,6 @@ class TestArchiveWriter(object):
             offset += header_len - 4
             data_len = struct.unpack('<I', data[offset:offset+4])[0]
             offset += 4 + data_len
-
-            print "block id = %d" % block_id
-            print "block total size = %d" % (header_len + data_len)
 
             block_ids.append(block_id)
             block_lenghts.append(header_len + data_len)
@@ -95,11 +86,54 @@ class TestArchiveWriter(object):
         for c in Counter(block_ids).values():
             assert c == 1
 
-    # def test_one_big_file(self):
 
-    #     outfile = StringIO()
+    def test_one_big_file(self):
 
-    #     ar = ArchiveWriter()
+        outfile = StringIO()
 
-    #     ar.add('0', metadata, data)
+        ar = ArchiveWriter()
 
+        file_ = '0' * 50*1024*1024
+
+        ar.add('file001', {'perms': 'rwx'}, file_)
+
+        ar.flush(outfile)
+
+        outfile.seek(0)
+
+        data = outfile.read()
+        offset = 0
+        blocks = []
+        block_lenghts = []
+        block_ids = []
+        while offset < len(data):
+            start = offset
+            offset += 8  # block header
+            block_id = struct.unpack('<I', data[offset:offset+4])[0]
+            offset += 4
+            header_len = struct.unpack('<H', data[offset:offset+2])[0]
+            offset += header_len - 4
+            data_len = struct.unpack('<I', data[offset:offset+4])[0]
+            offset += 4 + data_len
+
+            block_file = StringIO()
+            block_file.write(data[start:offset])
+            block_file.seek(0)
+
+            blocks.append(BlockReader(block_file))
+
+            block_lenghts.append(header_len + data_len)
+
+        block_ids = [block.id for block in blocks]
+
+        assert blocks[0].get_metadata('file001') == {'perms': 'rwx'}
+
+        for block in blocks:
+            assert block.metadata['file001']['total_size'] == 50*1024*1024
+            assert block.metadata['file001']['multipart'] == block_ids
+
+        for block_len in block_lenghts:
+            assert block_len < 12*1024*1024
+
+        for c in Counter(block_ids).values():
+            assert c == 1

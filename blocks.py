@@ -42,12 +42,17 @@ class BlockWriter(object):
         blockdata = ''
 
         block_metadata = OrderedDict()
-        for key, metadata, data in self.entries:
+        for key, metadata, data, total_size, multipart in self.entries:
             block_metadata[key] = OrderedDict([
                 ('size', len(data)),
                 ('offset', len(blockdata)),
                 ('metadata', metadata)
                 ])
+
+            if total_size:
+                block_metadata[key]['total_size'] = total_size
+            if multipart:
+                block_metadata[key]['multipart'] = multipart
 
             blockdata += data
 
@@ -73,14 +78,16 @@ class BlockWriter(object):
 
         outfile.write(errorcorrection_layer.get_data())
 
+    def is_empty(self):
+        return not self.entries
 
-    def add_entry(self, key, metadata, data):
+    def add_entry(self, key, metadata, data, total_size=0, multipart=None):
         if not metadata:
             metadata = {}
-        self.entries.append((key, metadata, data))
+        self.entries.append((key, metadata, data, total_size, multipart))
 
     def size_estimate(self):
-        return sum([len(data) for key, metadata, data in self.entries])
+        return sum([len(data) for key, metadata, data, ts, mp in self.entries])
 
 
 
