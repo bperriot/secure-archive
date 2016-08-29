@@ -1,11 +1,9 @@
-syntax: glob
 *.swp
 *.pyc
 *.pyo
 *.sublime-workspace
 
 *.sac
-TODO.md
 
 __pycache__
 
